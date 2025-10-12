@@ -19,10 +19,7 @@ const PortfolioHeader: React.FC<PortfolioHeaderProps> = ({ totalValue, onWithdra
   const changeValue = totalValue * (changePercentage / 100);
 
   const handleInvestClick = () => {
-    // Replace with the actual phone number
-    const phoneNumber = '1234567890'; 
-    const message = encodeURIComponent("Hello! I'm interested in investing with INVEST EMPOWERMENT.");
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+    window.open('https://wa.link/zzgy5z', '_blank');
   };
 
   return (

@@ -13,7 +13,7 @@ const sizeClasses = {
   lg: 'w-12 h-12',
 }
 
-export const AssetLogo: React.FC<AssetLogoProps> = ({ asset, size = 'md' }) => {
+const AssetLogo: React.FC<AssetLogoProps> = ({ asset, size = 'md' }) => {
   const containerSize = sizeClasses[size];
 
   if (asset.logoUrl) {

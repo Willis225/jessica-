@@ -88,13 +88,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
             </button>
           </p>
         </div>
-        
-        {isLogin && (
-            <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400 p-2 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
-             
-            </div>
-        )}
-
       </div>
     </div>
   );

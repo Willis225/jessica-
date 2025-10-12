@@ -120,7 +120,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden p-8 sm:p-10">
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6 mb-6">
-                  <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Pastor Jessica Allen" className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-md" />
+                  <img src="https://i.imgur.com/T5S2pZf.jpg" alt="Pastor Jessica Allen" className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-md" />
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">A Message from Pastor Jessica Allen</h2>
                     <p className="text-md text-emerald-700 dark:text-emerald-400 font-medium mt-1">Restoring Hope and Building a Secure Future Together</p>
@@ -270,7 +270,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <footer className="bg-gray-800 dark:bg-black/50 text-white">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
             <p>&copy; {new Date().getFullYear()} INVEST EMPOWERMENT. All Rights Reserved.</p>
-            <p className="text-sm text-gray-400 mt-2">Investing involves risk. Please invest responsibly.</p>
+            <p className="text-sm text-gray-400 mt-2">. .</p>
         </div>
       </footer>
     </div>
