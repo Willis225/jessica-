@@ -38,30 +38,34 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Your Profile</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] shadow-2xl w-full max-lg border border-gray-200 dark:border-blue-900/20 overflow-hidden relative">
+        <div className="spotlight-bg opacity-30" />
+        
+        <div className="flex justify-between items-center p-8 border-b border-gray-100 dark:border-blue-900/10 relative z-10">
+          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Profile Settings</h2>
+          <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-blue-900/30 transition-all">
             <XMarkIcon className="w-7 h-7" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="flex flex-col items-center mb-6 gap-4">
-            {imagePreview ? (
-              <img src={imagePreview} alt="Profile Preview" className="w-28 h-28 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700 shadow-md" />
-            ) : (
-              <UserCircleIcon className="w-28 h-28 text-gray-400 dark:text-gray-500" />
-            )}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
-            >
-              <CameraIcon className="w-5 h-5" />
-              <span>Change Picture</span>
-            </button>
+        <form onSubmit={handleSubmit} className="p-8 relative z-10 space-y-8">
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-blue-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity" />
+              {imagePreview ? (
+                <img src={imagePreview} alt="Profile Preview" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-blue-900/30 shadow-2xl relative z-10" />
+              ) : (
+                <UserCircleIcon className="w-32 h-32 text-gray-200 dark:text-blue-900/30 relative z-10" />
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-xl transition-all hover:scale-110 active:scale-95 z-20 border-4 border-white dark:border-[#0f172a]"
+              >
+                <CameraIcon className="w-5 h-5" />
+              </button>
+            </div>
             <input
               type="file"
               ref={fileInputRef}
@@ -71,9 +75,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
             />
           </div>
         
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="fullName" className="block text-xs font-bold text-gray-500 dark:text-blue-400/60 uppercase tracking-widest ml-1">Full Name</label>
               <input
                 type="text"
                 id="fullName"
@@ -81,11 +85,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
                 value={formData.fullName || ''}
                 onChange={handleInputChange}
                 placeholder="Your full name"
-                className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-bold"
               />
             </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-xs font-bold text-gray-500 dark:text-blue-400/60 uppercase tracking-widest ml-1">Email Address</label>
               <input
                 type="email"
                 id="email"
@@ -93,17 +97,17 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
                 value={formData.email || ''}
                 onChange={handleInputChange}
                 placeholder="your.email@example.com"
-                className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-bold"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-8">
-            <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-6 rounded-lg transition-colors">
-              Cancel
-            </button>
-            <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+          <div className="flex flex-col gap-3 pt-4">
+            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-xl shadow-blue-500/20 active:scale-95">
               Save Changes
+            </button>
+            <button type="button" onClick={onClose} className="w-full py-3 text-sm font-bold text-gray-500 dark:text-blue-400/60 hover:text-gray-900 dark:hover:text-white transition-colors">
+              Cancel
             </button>
           </div>
         </form>

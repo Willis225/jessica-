@@ -47,9 +47,9 @@ export type Theme = 'light' | 'dark';
 export interface Receipt {
   transactionId: string;
   date: string;
-  status: 'Pending' | 'Completed' | 'Failed';
+  status: 'Payment Successful' | 'Completed' | 'Failed';
   userProfile: UserProfile;
-  amountGBP: number;
+  amountUSD: number;
   amountLocal: number;
   currency: string;
   exchangeRate: number;

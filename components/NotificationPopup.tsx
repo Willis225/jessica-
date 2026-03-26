@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Notification } from '../types';
 import { XMarkIcon } from './Icons';
 
@@ -45,30 +46,41 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({ notification, onR
 
   return (
     <div 
-        className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 w-full overflow-hidden transition-all duration-300 ease-out ${
-        isVisible && !isExiting ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+        className={`bg-white/90 dark:bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-blue-900/20 w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative group ${
+        isVisible && !isExiting ? 'translate-x-0 opacity-100 scale-100' : '-translate-x-full opacity-0 scale-95'
       }`}
       role="alert"
       aria-live="assertive"
     >
-      <div className="flex items-start p-4">
-        <div className="flex-shrink-0">
-          <Icon className={`w-7 h-7 ${iconColorClass}`} />
+      <div className="spotlight-bg opacity-10 group-hover:opacity-20 transition-opacity" />
+      
+      <div className="flex items-start p-5 relative z-10">
+        <div className="flex-shrink-0 relative">
+          <div className={`absolute -inset-2 blur-lg opacity-20 ${iconColorClass.replace('text-', 'bg-')}`} />
+          <Icon className={`w-8 h-8 relative z-10 ${iconColorClass}`} />
         </div>
-        <div className="ml-3 w-0 flex-1">
-          <p className="text-sm font-bold text-gray-900 dark:text-white">{title}</p>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{message}</p>
-          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{timestamp}</p>
+        <div className="ml-4 w-0 flex-1">
+          <p className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">{title}</p>
+          <p className="mt-1 text-sm font-medium text-gray-600 dark:text-blue-400/60 leading-relaxed">{message}</p>
+          <p className="mt-2 text-[10px] font-bold text-gray-400 dark:text-blue-400/30 uppercase tracking-widest">{timestamp}</p>
         </div>
         <div className="ml-4 flex-shrink-0 flex">
           <button
             onClick={handleClose}
-            className="inline-flex text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 rounded-md"
+            className="inline-flex text-gray-400 dark:text-blue-400/40 hover:text-gray-600 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-blue-900/20"
           >
             <span className="sr-only">Close</span>
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
+      </div>
+      <div className="absolute bottom-0 left-0 h-1 bg-blue-600/20 w-full">
+        <motion.div 
+          initial={{ width: '100%' }}
+          animate={{ width: '0%' }}
+          transition={{ duration: 7, ease: 'linear' }}
+          className="h-full bg-blue-600"
+        />
       </div>
     </div>
   );

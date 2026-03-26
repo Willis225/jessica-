@@ -1,4 +1,3 @@
-
 import React, { useState, FormEvent } from 'react';
 import { Asset, TransactionType } from '../types';
 import { XMarkIcon, PlusIcon, MinusIcon } from './Icons';
@@ -68,97 +67,110 @@ const ManageBalanceModal: React.FC<ManageBalanceModalProps> = ({ asset, onClose,
   const value = asset.balance * asset.price;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {view === 'main' ? `Manage ${asset.name} Balance` : 'Authorization Required'}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-white dark:bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-md border border-gray-200 dark:border-blue-900/20 overflow-hidden relative">
+        <div className="spotlight-bg opacity-30" />
+        
+        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-blue-900/10 relative z-10">
+          <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {view === 'main' ? `Manage ${asset.name}` : 'Authorization'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            <XMarkIcon className="w-7 h-7" />
+          <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-blue-900/30 transition-all">
+            <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
 
         {view === 'main' ? (
-          <form onSubmit={handleSubmit}>
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <AssetLogo asset={asset} size="lg" />
+          <form onSubmit={handleSubmit} className="relative z-10">
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-blue-900/10 rounded-2xl border border-gray-100 dark:border-blue-900/10">
+                <div className="p-2 bg-white dark:bg-blue-900/30 rounded-xl shadow-sm">
+                  <AssetLogo asset={asset} size="lg" />
+                </div>
                 <div>
-                  <p className="font-bold text-gray-900 dark:text-white text-lg">{asset.name} ({asset.ticker})</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Current Balance: {asset.balance.toLocaleString()} {asset.ticker} ({value.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })})
+                  <p className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{asset.name}</p>
+                  <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mt-1">
+                    Balance: {asset.balance.toLocaleString()} {asset.ticker}
                   </p>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Amount in {asset.ticker}
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="e.g., 0.5"
-                  required
-                  className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                />
-              </div>
-              
-              <div className="mb-6">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Description (Optional)
-                </label>
-                <input
-                    id="description"
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="amount" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                    Amount ({asset.ticker})
+                  </label>
+                  <input
+                    id="amount"
                     type="text"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="e.g., Monthly savings"
-                    maxLength={50}
-                    className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                />
+                    value={amount}
+                    onChange={handleAmountChange}
+                    placeholder="0.00"
+                    required
+                    className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="description" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                      Note (Optional)
+                  </label>
+                  <input
+                      id="description"
+                      type="text"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="e.g., Portfolio rebalancing"
+                      maxLength={50}
+                      className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs py-3 px-4 rounded-xl font-bold text-center">
+                  {error}
+                </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 pt-2">
                   <button
                       type="submit"
                       onClick={() => setTransactionType(TransactionType.ADD)}
-                      className="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-sm"
+                      className="flex flex-col items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                   >
                       <PlusIcon className="w-5 h-5" />
-                      <span>Add to Balance</span>
+                      <span className="text-xs">Add Funds</span>
                   </button>
                   <button
                       type="submit"
                       onClick={() => setTransactionType(TransactionType.REMOVE)}
-                      className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-sm"
+                      className="flex flex-col items-center justify-center gap-2 w-full bg-gray-900 dark:bg-white text-white dark:text-black font-bold py-4 px-4 rounded-2xl transition-all shadow-lg active:scale-95"
                   >
                       <MinusIcon className="w-5 h-5" />
-                      <span>Remove from Balance</span>
+                      <span className="text-xs">Remove</span>
                   </button>
               </div>
             </div>
 
-            <div className="bg-blue-50 dark:bg-gray-800/50 p-4 rounded-b-2xl flex justify-end">
-               <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-6 rounded-lg transition-colors">
-                Cancel
+            <div className="bg-gray-50 dark:bg-blue-900/10 p-4 flex justify-center">
+               <button type="button" onClick={onClose} className="text-sm font-bold text-gray-500 dark:text-blue-400/60 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Close Manager
               </button>
             </div>
           </form>
-        ) : ( // view === 'confirmCode'
-          <form onSubmit={handleConfirmAdd}>
-            <div className="p-6">
-              <p className="text-center text-gray-700 dark:text-gray-300 mb-4">
-                A secret code is required to add funds to your investment.
+        ) : (
+          <form onSubmit={handleConfirmAdd} className="relative z-10">
+            <div className="p-8 space-y-6 text-center">
+              <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                <PlusIcon className="w-8 h-8 text-blue-600" />
+              </div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                A secure authorization code is required to add funds to your investment portfolio.
               </p>
-              <div className="mb-4">
-                <label htmlFor="secretCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Secret Code
+              <div className="text-left">
+                <label htmlFor="secretCode" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                  Authorization Code
                 </label>
                 <input
                   id="secretCode"
@@ -168,23 +180,27 @@ const ManageBalanceModal: React.FC<ManageBalanceModalProps> = ({ asset, onClose,
                     setSecretCode(e.target.value);
                     setError('');
                   }}
-                  placeholder="Enter authorization code"
+                  placeholder="••••••••"
                   required
                   autoFocus
-                  className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                  className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-center tracking-[0.5em]"
                 />
               </div>
-              {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs py-3 px-4 rounded-xl font-bold">
+                  {error}
+                </div>
+              )}
             </div>
-            <div className="bg-blue-50 dark:bg-gray-800/50 p-4 rounded-b-2xl flex justify-end gap-4">
-              <button type="button" onClick={handleBackToMain} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-6 rounded-lg transition-colors">
-                Back
-              </button>
+            <div className="p-6 pt-0 flex flex-col gap-3">
               <button
                 type="submit"
-                className="flex items-center justify-center gap-2 w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-xl shadow-blue-500/20 active:scale-95"
               >
-                Authorize & Add
+                Confirm Deposit
+              </button>
+              <button type="button" onClick={handleBackToMain} className="w-full py-3 text-sm font-bold text-gray-500 dark:text-blue-400/60 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Go Back
               </button>
             </div>
           </form>

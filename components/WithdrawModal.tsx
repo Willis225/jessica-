@@ -15,17 +15,19 @@ interface WithdrawModalProps {
   }) => void;
 }
 
+// Exchange rates based on 1 USD as base
 const exchangeRates: Record<string, number> = {
-  AUD: 1.91,   // Australian Dollar
-  EUR: 1.18,   // Euro
-  FJD: 2.85,   // Fijian Dollar
-  NZD: 2.05,   // New Zealand Dollar
-  PGK: 4.85,   // Papua New Guinean Kina
-  SBD: 10.55,  // Solomon Islands Dollar
-  TOP: 2.95,   // Tongan Pa'anga
-  USD: 1.25,   // United States Dollar
-  VUV: 155,    // Vanuatu Vatu
-  WST: 3.45,   // Samoan Tālā
+  AUD: 1.53,   // Australian Dollar
+  EUR: 0.94,   // Euro
+  FJD: 2.28,   // Fijian Dollar
+  NZD: 1.64,   // New Zealand Dollar
+  PGK: 3.88,   // Papua New Guinean Kina
+  SBD: 8.44,   // Solomon Islands Dollar
+  TOP: 2.36,   // Tongan Pa'anga
+  USD: 1.00,   // United States Dollar
+  VUV: 124,    // Vanuatu Vatu
+  WST: 2.76,   // Samoan Tālā
+  GBP: 0.80,   // British Pound
 };
 
 const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWithdraw }) => {
@@ -70,7 +72,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWi
     }
 
     if (numericAmount > totalValue) {
-      setError(`Cannot withdraw more than the total investment value of ${totalValue.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}.`);
+      setError(`Cannot withdraw more than the total investment value of ${totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}.`);
       return;
     }
     setView('convert');
@@ -101,80 +103,89 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWi
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {view === 'amount' ? 'Withdraw Funds' : 'Confirm Withdrawal'}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-white dark:bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-md border border-gray-200 dark:border-blue-900/20 overflow-hidden relative">
+        <div className="spotlight-bg opacity-30" />
+        
+        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-blue-900/10 relative z-10">
+          <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {view === 'amount' ? 'Withdraw Funds' : 'Review Withdrawal'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            <XMarkIcon className="w-7 h-7" />
+          <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-blue-900/30 transition-all">
+            <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
 
         {view === 'amount' ? (
-           <form onSubmit={handleProceedToConvert}>
-            <div className="p-6">
-              <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 mb-6 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Investment Value</p>
-                <p className="font-bold text-2xl text-gray-900 dark:text-white mt-1">
-                  {totalValue.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
+           <form onSubmit={handleProceedToConvert} className="relative z-10">
+            <div className="p-8 space-y-8">
+              <div className="bg-gray-50 dark:bg-blue-900/10 rounded-2xl p-6 text-center border border-gray-100 dark:border-blue-900/10">
+                <p className="text-xs font-bold text-gray-500 dark:text-blue-400/60 uppercase tracking-widest">Total Portfolio Value</p>
+                <p className="font-extrabold text-3xl text-gray-900 dark:text-white mt-2 tracking-tight">
+                  {totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                 </p>
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="withdraw-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Withdrawal Amount (GBP)
+              <div className="space-y-4">
+                <label htmlFor="withdraw-amount" className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+                  Withdrawal Amount (USD)
                 </label>
-                <input
-                  id="withdraw-amount"
-                  type="text"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="e.g., 500.00"
-                  required
-                  autoFocus
-                  className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                />
+                <div className="relative">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                  <input
+                    id="withdraw-amount"
+                    type="text"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    placeholder="0.00"
+                    required
+                    autoFocus
+                    className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl pl-10 pr-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-bold text-lg"
+                  />
+                </div>
               </div>
               
-              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs py-3 px-4 rounded-xl font-bold text-center">
+                  {error}
+                </div>
+              )}
             </div>
 
-            <div className="bg-blue-50 dark:bg-gray-800/50 p-4 rounded-b-2xl flex justify-end gap-4">
-               <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-6 rounded-lg transition-colors">
-                Cancel
-              </button>
+            <div className="p-6 pt-0">
               <button
                   type="submit"
-                  className="flex items-center justify-center gap-2 w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm disabled:bg-emerald-800 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-xl shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!amount || numericAmount <= 0}
               >
-                  <span>Next</span>
+                  <span>Continue to Details</span>
                   <ArrowRightIcon className="w-5 h-5" />
+              </button>
+              <button type="button" onClick={onClose} className="w-full py-4 text-sm font-bold text-gray-500 dark:text-blue-400/60 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Cancel
               </button>
             </div>
           </form>
         ) : (
-          <div>
-            <div className="p-6 max-h-[70vh] overflow-y-auto">
-              <div className="text-center mb-6">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Amount to Withdraw</p>
-                  <p className="font-bold text-3xl text-gray-900 dark:text-white mt-1">
-                    {numericAmount.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
+          <div className="relative z-10">
+            <div className="p-6 max-h-[65vh] overflow-y-auto space-y-6 scrollbar-hide">
+              <div className="text-center p-4 bg-gray-50 dark:bg-blue-900/10 rounded-2xl border border-gray-100 dark:border-blue-900/10">
+                  <p className="text-xs font-bold text-gray-500 dark:text-blue-400/60 uppercase tracking-widest">Withdrawal Amount</p>
+                  <p className="font-extrabold text-3xl text-gray-900 dark:text-white mt-1 tracking-tight">
+                    {numericAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                   </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label htmlFor="target-currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Convert To
+                  <label htmlFor="target-currency" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                    Payout Currency
                   </label>
                   <select 
                     id="target-currency"
                     value={targetCurrency}
                     onChange={(e) => setTargetCurrency(e.target.value)}
-                    className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium"
                   >
                     <option value="PGK">PGK - Papua New Guinean Kina</option>
                     <option value="FJD">FJD - Fijian Dollar</option>
@@ -186,28 +197,26 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWi
                     <option value="AUD">AUD - Australian Dollar</option>
                     <option value="USD">USD - United States Dollar</option>
                     <option value="EUR">EUR - Euro</option>
+                    <option value="GBP">GBP - British Pound</option>
                   </select>
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
-                    <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200">Bank Details</h3>
+                <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest ml-1">Bank Information</h3>
                      <div>
-                        <label htmlFor="bank-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bank Name</label>
-                        <input id="bank-name" type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g., Pacific Bank" required className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"/>
+                        <input id="bank-name" type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="Bank Name" required className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"/>
                     </div>
                     <div>
-                        <label htmlFor="account-holder-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Holder's Name</label>
-                        <input id="account-holder-name" type="text" value={accountHolderName} onChange={(e) => setAccountHolderName(e.target.value)} placeholder="e.g., Jessica Allen" required className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"/>
+                        <input id="account-holder-name" type="text" value={accountHolderName} onChange={(e) => setAccountHolderName(e.target.value)} placeholder="Account Holder Name" required className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"/>
                     </div>
                      <div>
-                        <label htmlFor="account-number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Number</label>
-                        <input id="account-number" type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Enter your bank account number" required className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"/>
+                        <input id="account-number" type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Account Number" required className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"/>
                     </div>
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <label htmlFor="secret-code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Secret Withdrawal Code
+                <div className="pt-2">
+                    <label htmlFor="secret-code" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                        Security Code
                     </label>
                     <input 
                         id="secret-code"
@@ -217,38 +226,40 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWi
                             setSecretCode(e.target.value)
                             setError('')
                         }}
-                        placeholder="Enter authorization code"
+                        placeholder="••••••••"
                         required
-                        className="w-full bg-white dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                        className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-center tracking-[0.5em]"
                     />
                 </div>
               </div>
               
-              {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs py-3 px-4 rounded-xl font-bold text-center">
+                  {error}
+                </div>
+              )}
               
-              <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center mt-6">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  You will receive (approx.)
-                </p>
-                <p className="font-bold text-2xl text-emerald-600 dark:text-emerald-500 mt-1">
+              <div className="bg-blue-600/5 dark:bg-blue-400/5 rounded-2xl p-6 text-center border border-blue-600/10 dark:border-blue-400/10">
+                <p className="text-xs font-bold text-gray-500 dark:text-blue-400/60 uppercase tracking-widest">Estimated Payout</p>
+                <p className="font-extrabold text-3xl text-blue-600 dark:text-blue-400 mt-2 tracking-tight">
                   {convertedAmount?.toLocaleString('en-US', { style: 'currency', currency: targetCurrency }) ?? '...'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Rate: 1 GBP ≈ {exchangeRates[targetCurrency]} {targetCurrency}
+                <p className="text-[10px] font-bold text-gray-400 dark:text-blue-400/40 mt-3 uppercase tracking-tighter">
+                  Rate: 1 USD ≈ {exchangeRates[targetCurrency]} {targetCurrency}
                 </p>
               </div>
             </div>
 
-            <div className="bg-blue-50 dark:bg-gray-800/50 p-4 rounded-b-2xl flex justify-end gap-4">
-              <button type="button" onClick={() => { setView('amount'); setError(''); setSecretCode(''); }} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-6 rounded-lg transition-colors">
-                Back
-              </button>
+            <div className="p-6 flex flex-col gap-3">
               <button
                   onClick={handleConfirmWithdrawal}
-                  className="flex items-center justify-center gap-2 w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm"
+                  className="flex items-center justify-center gap-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-xl shadow-blue-500/20 active:scale-95"
               >
-                  <BanknotesIcon className="w-5 h-5" />
-                  <span>Confirm & Withdraw</span>
+                  <BanknotesIcon className="w-6 h-6" />
+                  <span>Request Withdrawal</span>
+              </button>
+              <button type="button" onClick={() => { setView('amount'); setError(''); setSecretCode(''); }} className="w-full py-3 text-sm font-bold text-gray-500 dark:text-blue-400/60 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Back to Amount
               </button>
             </div>
           </div>

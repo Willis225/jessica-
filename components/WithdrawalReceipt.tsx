@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Receipt } from '../types';
-import { ClockIcon, UserCircleIcon, ArrowDownTrayIcon } from './Icons';
+import { ShieldCheckIcon, UserCircleIcon, ArrowDownTrayIcon } from './Icons';
 
 interface WithdrawalReceiptProps {
   receipt: Receipt;
@@ -52,103 +52,107 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
   };
 
   return (
-    <div className="min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-300 p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-      <div className="w-full max-w-2xl">
-        <div className="mb-6 flex flex-wrap justify-between items-center gap-4">
-            <button onClick={onBack} className="text-emerald-600 dark:text-emerald-500 font-semibold hover:underline">
-                &larr; Back to Dashboard
+    <div className="w-full flex flex-col items-center relative">
+      <div className="w-full max-w-2xl relative z-10">
+        <div className="mb-8 flex flex-wrap justify-between items-center gap-4">
+            <button onClick={onBack} className="text-blue-600 dark:text-blue-400 font-bold hover:text-blue-700 dark:hover:text-blue-300 transition-colors flex items-center gap-2">
+                <span className="text-xl">&larr;</span> Back to Dashboard
             </button>
             <button 
                 onClick={handleDownload}
-                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm"
+                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 shadow-xl shadow-blue-500/20 active:scale-95"
             >
                 <ArrowDownTrayIcon className="w-5 h-5" />
                 <span>Download Receipt</span>
             </button>
         </div>
 
-        <div ref={receiptRef} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-8 text-center bg-blue-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Withdrawal Initiated</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Your transaction is being processed.</p>
-            <div className="mt-4 inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 font-medium py-1 px-3 rounded-full text-sm">
-              <ClockIcon className="w-4 h-4" />
+        <div ref={receiptRef} className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-blue-900/20 overflow-hidden relative">
+          <div className="spotlight-bg opacity-20" />
+          
+          <div className="p-10 text-center bg-gray-50/50 dark:bg-blue-900/10 border-b border-gray-100 dark:border-blue-900/10 relative z-10">
+            <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/40 transform -rotate-6">
+              <ShieldCheckIcon className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Withdrawal Successful</h1>
+            <p className="text-gray-500 dark:text-blue-400/60 mt-2 font-bold">Your transaction has been completed successfully.</p>
+            <div className="mt-6 inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-black py-2 px-4 rounded-2xl text-xs uppercase tracking-widest">
               <span>{receipt.status}</span>
             </div>
           </div>
 
-          <div className="p-8 space-y-6">
-            <div className="flex items-center gap-4">
+          <div className="p-10 space-y-10 relative z-10">
+            <div className="flex items-center gap-5 bg-gray-50 dark:bg-black/20 p-4 rounded-3xl border border-gray-100 dark:border-blue-900/10">
               {userProfile.profilePicture ? (
-                <img src={userProfile.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
+                <img src={userProfile.profilePicture} alt="Profile" className="w-14 h-14 rounded-2xl object-cover shadow-lg" />
               ) : (
-                <UserCircleIcon className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center">
+                  <UserCircleIcon className="w-10 h-10 text-blue-600/40" />
+                </div>
               )}
               <div>
-                <p className="font-bold text-gray-900 dark:text-white">{userProfile.fullName}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{userProfile.email}</p>
+                <p className="font-black text-lg text-gray-900 dark:text-white leading-tight">{userProfile.fullName}</p>
+                <p className="text-sm font-bold text-gray-500 dark:text-blue-400/40">{userProfile.email}</p>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center sm:text-left">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Amount Withdrawn</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">
-                    {receipt.amountGBP.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
-                  </p>
-                </div>
-                <div className="sm:text-right">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">You Will Receive (Approx.)</p>
-                  <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-500">
-                     {receipt.amountLocal.toLocaleString('en-US', { style: 'currency', currency: receipt.currency })}
-                  </p>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-gray-400 dark:text-blue-400/40 uppercase tracking-widest">Amount Withdrawn</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                  {receipt.amountUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                </p>
+              </div>
+              <div className="sm:text-right space-y-1">
+                <p className="text-xs font-bold text-gray-400 dark:text-blue-400/40 uppercase tracking-widest">You Will Receive (Approx.)</p>
+                <p className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">
+                   {receipt.amountLocal.toLocaleString('en-US', { style: 'currency', currency: receipt.currency })}
+                </p>
               </div>
             </div>
 
             {/* Bank Details Section */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 className="font-semibold text-lg mb-3 text-gray-800 dark:text-gray-200">Withdrawal Destination</h3>
-                <div className="bg-blue-50 dark:bg-gray-700/50 rounded-lg p-4">
-                     <ul className="space-y-2 text-sm">
-                        <li className="flex justify-between">
-                            <span className="text-gray-500 dark:text-gray-400">Bank Name</span>
-                            <span className="font-medium text-gray-700 dark:text-gray-300">{receipt.bankName}</span>
+            <div className="space-y-4">
+                <h3 className="text-xs font-black text-gray-400 dark:text-blue-400/40 uppercase tracking-widest ml-1">Withdrawal Destination</h3>
+                <div className="bg-gray-50 dark:bg-black/20 rounded-[2rem] p-6 border border-gray-100 dark:border-blue-900/10">
+                     <ul className="space-y-4">
+                        <li className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-gray-500 dark:text-blue-400/40">Bank Name</span>
+                            <span className="font-black text-gray-900 dark:text-white">{receipt.bankName}</span>
                         </li>
-                        <li className="flex justify-between">
-                            <span className="text-gray-500 dark:text-gray-400">Account Holder</span>
-                            <span className="font-medium text-gray-700 dark:text-gray-300">{receipt.accountHolderName}</span>
+                        <li className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-gray-500 dark:text-blue-400/40">Account Holder</span>
+                            <span className="font-black text-gray-900 dark:text-white">{receipt.accountHolderName}</span>
                         </li>
-                        <li className="flex justify-between">
-                            <span className="text-gray-500 dark:text-gray-400">Account Number</span>
-                            <span className="font-mono text-gray-700 dark:text-gray-300">{maskAccountNumber(receipt.accountNumber)}</span>
+                        <li className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-gray-500 dark:text-blue-400/40">Account Number</span>
+                            <span className="font-mono font-black text-gray-900 dark:text-white tracking-wider">{maskAccountNumber(receipt.accountNumber)}</span>
                         </li>
                      </ul>
                 </div>
             </div>
 
-            <div className="bg-blue-50 dark:bg-gray-700/50 rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-3 text-gray-800 dark:text-gray-200">Transaction Details</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Transaction ID</span>
-                  <span className="font-mono text-gray-700 dark:text-gray-300">{receipt.transactionId}</span>
+            <div className="bg-blue-600/5 dark:bg-blue-900/10 rounded-[2rem] p-6 border border-blue-600/10 dark:border-blue-900/20">
+              <h3 className="text-xs font-black text-blue-600 dark:text-blue-400/60 uppercase tracking-widest mb-4 ml-1">Transaction Details</h3>
+              <ul className="space-y-4">
+                <li className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-blue-600/60 dark:text-blue-400/40">Transaction ID</span>
+                  <span className="font-mono font-black text-blue-700 dark:text-blue-300 text-xs">{receipt.transactionId}</span>
                 </li>
-                <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Date & Time</span>
-                  <span className="text-gray-700 dark:text-gray-300">{formatDate(receipt.date)}</span>
+                <li className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-blue-600/60 dark:text-blue-400/40">Date & Time</span>
+                  <span className="font-black text-blue-700 dark:text-blue-300">{formatDate(receipt.date)}</span>
                 </li>
-                 <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Exchange Rate</span>
-                  <span className="text-gray-700 dark:text-gray-300">1 GBP ≈ {receipt.exchangeRate.toLocaleString()} {receipt.currency}</span>
+                 <li className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-blue-600/60 dark:text-blue-400/40">Exchange Rate</span>
+                  <span className="font-black text-blue-700 dark:text-blue-300">1 USD ≈ {receipt.exchangeRate.toLocaleString()} {receipt.currency}</span>
                 </li>
               </ul>
             </div>
           </div>
           
-          <div className="p-4 text-center bg-blue-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
-             <p className="text-xs text-gray-500 dark:text-gray-400">If you have any questions, please contact support.</p>
+          <div className="p-6 text-center bg-gray-50/50 dark:bg-blue-900/10 border-t border-gray-100 dark:border-blue-900/10 relative z-10">
+             <p className="text-xs font-bold text-gray-400 dark:text-blue-400/40 uppercase tracking-widest">Invest Empowerment Official Receipt</p>
           </div>
         </div>
       </div>

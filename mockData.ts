@@ -1,4 +1,3 @@
-
 import { Asset, UserProfile, TransactionType } from './types';
 
 // This is the user profile for the demo account.
@@ -16,7 +15,7 @@ export const initialAssets: Asset[] = [
         name: 'Bitcoin',
         ticker: 'BTC',
         balance: 2.5,
-        price: 55210.50,
+        price: 95210.50, // Updated price for USD
         logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/1200px-Bitcoin.svg.png',
         transactions: [
             { id: 'tx1', type: TransactionType.ADD, amount: 1.0, date: '2024-05-01T10:00:00Z', description: 'Initial investment' },
@@ -29,7 +28,7 @@ export const initialAssets: Asset[] = [
         name: 'Apple Inc.',
         ticker: 'AAPL',
         balance: 50,
-        price: 172.25,
+        price: 232.25,
         logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
         transactions: [],
         priceAlerts: [],
@@ -87,10 +86,10 @@ export const initialAssets: Asset[] = [
     {
         id: 'cash',
         name: 'Cash Balance',
-        ticker: 'GBP',
+        ticker: 'USD',
         balance: 10000.00,
         price: 1.00,
-        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Pound_symbol.svg/1200px-Pound_symbol.svg.png',
+        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/United_States_one_dollar_bill%2C_reverse.jpg/1200px-United_States_one_dollar_bill%2C_reverse.jpg',
         transactions: [],
         priceAlerts: [],
     }
