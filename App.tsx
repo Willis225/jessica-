@@ -181,7 +181,7 @@ const App: React.FC = () => {
     return false;
   };
 
-  const handleSignup = (email: string, password: string): boolean => {
+  const handleSignup = (name: string, email: string, password: string): boolean => {
     setLoginError('');
     const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
     const lowerCaseEmail = email.toLowerCase();
@@ -192,7 +192,7 @@ const App: React.FC = () => {
     }
 
     const startTime = Date.now();
-    const newUserProfile = { ...newInitialProfile, email: lowerCaseEmail, fullName: 'New Investor' };
+    const newUserProfile = { ...newInitialProfile, email: lowerCaseEmail, fullName: name || 'New Investor' };
     const newUserData = {
       password,
       profile: newUserProfile,

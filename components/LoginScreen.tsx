@@ -3,22 +3,31 @@ import { StockIcon, EyeIcon, EyeSlashIcon } from './Icons';
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => boolean;
-  onSignup: (email: string, password: string) => boolean;
+  onSignup: (name: string, email: string, password: string) => boolean;
   error: string;
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [securityCode, setSecurityCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    setLocalError('');
+    
     if (isLogin) {
       onLogin(email, password);
     } else {
-      onSignup(email, password);
+      if (securityCode !== 'code123') {
+        setLocalError('Invalid security code. Registration denied.');
+        return;
+      }
+      onSignup(name, email, password);
     }
   };
 
@@ -43,6 +52,38 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
         
         <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl p-8 sm:p-10 rounded-[2.5rem] shadow-2xl border border-gray-200 dark:border-blue-900/20">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g., John Doe"
+                    required={!isLogin}
+                    className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="securityCode" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                    Security Code
+                  </label>
+                  <input
+                    id="securityCode"
+                    type="text"
+                    value={securityCode}
+                    onChange={(e) => setSecurityCode(e.target.value)}
+                    placeholder="Enter registration code"
+                    required={!isLogin}
+                    className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                  />
+                </div>
+              </>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
                 Email Address
@@ -85,9 +126,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
               </div>
             </div>
 
-            {error && (
+            {(error || localError) && (
               <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm py-3 px-4 rounded-xl text-center font-medium">
-                {error}
+                {error || localError}
               </div>
             )}
             
@@ -105,7 +146,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
             </span>
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setLocalError('');
+              }}
               className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2 transition-colors"
             >
               {isLogin ? 'Sign Up' : 'Log In'}
