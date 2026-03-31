@@ -95,10 +95,22 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
+    // Seed default user if none exists
+    const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
+    if (Object.keys(users).length === 0) {
+      const defaultEmail = newInitialProfile.email.toLowerCase();
+      users[defaultEmail] = {
+        password: 'password123',
+        profile: newInitialProfile,
+        assets: newInitialAssets,
+        investmentStartTime: Date.now(),
+      };
+      localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+    }
+
     // Auto-login check on initial load
     const loggedInUserEmail = localStorage.getItem(ACTIVE_USER_KEY);
     if (loggedInUserEmail) {
-      const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
       const userData = users[loggedInUserEmail];
       if (userData) {
         setActiveUserEmail(loggedInUserEmail);
@@ -164,16 +176,17 @@ const App: React.FC = () => {
 
   const handleLogin = (email: string, password: string): boolean => {
     setLoginError('');
+    const trimmedEmail = email.trim().toLowerCase();
     const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    const userData = users[email.toLowerCase()];
+    const userData = users[trimmedEmail];
 
     if (userData && userData.password === password) {
-      setActiveUserEmail(email.toLowerCase());
+      setActiveUserEmail(trimmedEmail);
       setAssets(userData.assets);
       setUserProfile(userData.profile);
       setInvestmentStartTime(userData.investmentStartTime);
       setIsLoggedIn(true);
-      localStorage.setItem(ACTIVE_USER_KEY, email.toLowerCase());
+      localStorage.setItem(ACTIVE_USER_KEY, trimmedEmail);
       addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Welcome back', message: 'You are now signed in to your dashboard.' });
       return true;
     }
@@ -184,15 +197,15 @@ const App: React.FC = () => {
   const handleSignup = (name: string, email: string, password: string): boolean => {
     setLoginError('');
     const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    const lowerCaseEmail = email.toLowerCase();
+    const trimmedEmail = email.trim().toLowerCase();
 
-    if (users[lowerCaseEmail]) {
+    if (users[trimmedEmail]) {
       setLoginError('An account with this email already exists.');
       return false;
     }
 
     const startTime = Date.now();
-    const newUserProfile = { ...newInitialProfile, email: lowerCaseEmail, fullName: name || 'New Investor' };
+    const newUserProfile = { ...newInitialProfile, email: trimmedEmail, fullName: name.trim() || 'New Investor' };
     const newUserData = {
       password,
       profile: newUserProfile,
@@ -200,14 +213,14 @@ const App: React.FC = () => {
       investmentStartTime: startTime,
     };
 
-    saveUserData(lowerCaseEmail, newUserData);
+    saveUserData(trimmedEmail, newUserData);
 
-    setActiveUserEmail(lowerCaseEmail);
+    setActiveUserEmail(trimmedEmail);
     setAssets(newInitialAssets);
     setUserProfile(newUserProfile);
     setInvestmentStartTime(startTime);
     setIsLoggedIn(true);
-    localStorage.setItem(ACTIVE_USER_KEY, lowerCaseEmail);
+    localStorage.setItem(ACTIVE_USER_KEY, trimmedEmail);
     addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Account Created!', message: 'Welcome to INVEST EMPOWERMENT!' });
     return true;
   };
