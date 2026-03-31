@@ -95,18 +95,36 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    // Seed default user if none exists
+    // Seed default users if none exist
     const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    if (Object.keys(users).length === 0) {
-      const defaultEmail = newInitialProfile.email.toLowerCase();
-      users[defaultEmail] = {
+    
+    // Seed Jessica Allen (Original Default)
+    const jessicaEmail = newInitialProfile.email.toLowerCase();
+    if (!users[jessicaEmail]) {
+      users[jessicaEmail] = {
         password: 'password123',
         profile: newInitialProfile,
         assets: newInitialAssets,
         investmentStartTime: Date.now(),
       };
-      localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
     }
+
+    // Seed Paulias Kamban (User Requested)
+    const pauliasEmail = 'pauliaskamban24@gmail.com';
+    if (!users[pauliasEmail]) {
+      users[pauliasEmail] = {
+        password: 'Kamban',
+        profile: {
+          ...newInitialProfile,
+          fullName: 'PAULIAS KAMBAN',
+          email: pauliasEmail,
+        },
+        assets: newInitialAssets,
+        investmentStartTime: Date.now(),
+      };
+    }
+
+    localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
 
     // Auto-login check on initial load
     const loggedInUserEmail = localStorage.getItem(ACTIVE_USER_KEY);
