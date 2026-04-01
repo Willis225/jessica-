@@ -22,10 +22,6 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
     });
   };
   
-  const maskAccountNumber = (accountNumber: string) => {
-    return `**** **** **** ${accountNumber.slice(-4)}`;
-  };
-
   const handleDownloadImage = async () => {
     if (receiptRef.current === null) {
       return;
@@ -177,7 +173,7 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
                         </li>
                         <li className="flex justify-between items-center">
                             <span className="text-sm font-bold text-gray-500 dark:text-blue-400/40">Account Number</span>
-                            <span className="font-mono font-black text-gray-900 dark:text-white tracking-wider">{maskAccountNumber(receipt.accountNumber)}</span>
+                            <span className="font-mono font-black text-gray-900 dark:text-white tracking-wider">{receipt.accountNumber}</span>
                         </li>
                      </ul>
                 </div>

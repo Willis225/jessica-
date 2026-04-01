@@ -13,6 +13,7 @@ interface MobileDashboardProps {
     userProfile: UserProfile;
     notifications: Notification[];
     onWithdrawClick: () => void;
+    onWithdrawalHistoryClick: () => void;
     onProfileClick: () => void;
     onLogout: () => void;
     theme: 'light' | 'dark';
@@ -31,6 +32,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     userProfile,
     notifications,
     onWithdrawClick,
+    onWithdrawalHistoryClick,
     onProfileClick,
     onLogout,
     theme,
@@ -86,7 +88,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
             
             {/* Header */}
             <header className="flex justify-between items-center relative z-10">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <motion.button 
                         whileHover={{ scale: 1.1, rotate: 10 }}
                         whileTap={{ scale: 0.9 }}
@@ -97,6 +99,15 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                             <MoonIcon className="w-6 h-6" /> : 
                             <SunIcon className="w-6 h-6" />
                         }
+                    </motion.button>
+                    <motion.button 
+                        whileHover={{ scale: 1.1, rotate: -10 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={onWithdrawalHistoryClick} 
+                        className="p-3 rounded-2xl bg-gray-100 dark:bg-blue-900/20 text-gray-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-all"
+                        title="Withdrawal History"
+                    >
+                        <BanknotesIcon className="w-6 h-6" />
                     </motion.button>
                 </div>
 

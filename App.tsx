@@ -13,6 +13,7 @@ import WithdrawModal from './components/WithdrawModal';
 import WithdrawalReceipt from './components/WithdrawalReceipt';
 import ProfileModal from './components/ProfileModal';
 import { LogoutIcon } from './components/Icons';
+import WithdrawalHistoryModal from './components/WithdrawalHistoryModal';
 import MobileDashboard from './components/MobileDashboard';
 
 type ModalState = {
@@ -48,10 +49,12 @@ const App: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [investmentStartTime, setInvestmentStartTime] = useState<number | null>(null);
+  const [withdrawalHistory, setWithdrawalHistory] = useState<Receipt[]>([]);
 
   const [modal, setModal] = useState<ModalState>({ type: null, asset: null });
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isWithdrawalHistoryOpen, setIsWithdrawalHistoryOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentView, setCurrentView] = useState<'dashboard' | 'receipt'>('dashboard');
   const [activeReceipt, setActiveReceipt] = useState<Receipt | null>(null);
@@ -135,6 +138,7 @@ const App: React.FC = () => {
         setAssets(userData.assets);
         setUserProfile(userData.profile);
         setInvestmentStartTime(userData.investmentStartTime);
+        setWithdrawalHistory(userData.withdrawalHistory || []);
         setIsLoggedIn(true);
       }
     }
@@ -248,6 +252,7 @@ const App: React.FC = () => {
     setActiveUserEmail(null);
     setAssets([]);
     setUserProfile(null);
+    setWithdrawalHistory([]);
     localStorage.removeItem(ACTIVE_USER_KEY);
   };
   
@@ -298,10 +303,13 @@ const App: React.FC = () => {
     }).filter(asset => asset.balance > 0.00001);
     
     setAssets(updatedAssets);
+    const newHistory = [newReceipt, ...withdrawalHistory];
+    setWithdrawalHistory(newHistory);
+    
     if (activeUserEmail) {
       const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
       const currentUserData = users[activeUserEmail];
-      saveUserData(activeUserEmail, { ...currentUserData, assets: updatedAssets });
+      saveUserData(activeUserEmail, { ...currentUserData, assets: updatedAssets, withdrawalHistory: newHistory });
     }
 
     addNotification({ type: 'withdrawal', icon: BanknotesIcon, title: 'Withdrawal Successful', message: `Your withdrawal of ${details.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} has been processed.` });
@@ -426,6 +434,7 @@ const App: React.FC = () => {
               userProfile={userProfile}
               notifications={notifications}
               onWithdrawClick={() => setIsWithdrawModalOpen(true)}
+              onWithdrawalHistoryClick={() => setIsWithdrawalHistoryOpen(true)}
               onProfileClick={() => setIsProfileModalOpen(true)}
               onLogout={handleLogout}
               theme={theme}
@@ -454,6 +463,17 @@ const App: React.FC = () => {
       )}
       {modal.type === 'alert' && modal.asset && (
         <PriceAlertModal asset={modal.asset} onClose={() => setModal({type: null, asset: null})} onAddAlert={handleAddAlert} onDeleteAlert={handleDeleteAlert} />
+      )}
+      {isWithdrawalHistoryOpen && (
+        <WithdrawalHistoryModal 
+          history={withdrawalHistory} 
+          onClose={() => setIsWithdrawalHistoryOpen(false)} 
+          onViewReceipt={(receipt) => {
+            setActiveReceipt(receipt);
+            setCurrentView('receipt');
+            setIsWithdrawalHistoryOpen(false);
+          }}
+        />
       )}
       {isWithdrawModalOpen && (
         <WithdrawModal totalValue={animatedBalance} onClose={() => setIsWithdrawModalOpen(false)} onWithdraw={handleWithdraw} />
