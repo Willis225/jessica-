@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Receipt } from '../types';
-import { ShieldCheckIcon, UserCircleIcon, ArrowDownTrayIcon } from './Icons';
+import { ShieldCheckIcon, UserCircleIcon, ArrowDownTrayIcon, DocumentTextIcon } from './Icons';
+import { jsPDF } from 'jspdf';
 
 interface WithdrawalReceiptProps {
   receipt: Receipt;
@@ -25,7 +26,7 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
     return `**** **** **** ${accountNumber.slice(-4)}`;
   };
 
-  const handleDownload = async () => {
+  const handleDownloadImage = async () => {
     if (receiptRef.current === null) {
       return;
     }
@@ -35,7 +36,6 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
         quality: 0.98,
         pixelRatio: 2, // Increase resolution for better quality
         style: {
-          // Temporarily set a specific width during capture for consistency
           width: '672px', 
           margin: '0',
           borderRadius: '0',
@@ -51,6 +51,42 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
     }
   };
 
+  const handleDownloadPDF = async () => {
+    if (receiptRef.current === null) {
+      return;
+    }
+
+    try {
+      // First generate the image
+      const dataUrl = await htmlToImage.toPng(receiptRef.current, { 
+        quality: 1,
+        pixelRatio: 3, // Higher resolution for PDF
+        style: {
+          width: '672px', 
+          margin: '0',
+          borderRadius: '0',
+        }
+      });
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [672, 900] // Match the receipt dimensions roughly
+      });
+
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`INVEST-EMPOWERMENT-Receipt-${receipt.transactionId}.pdf`);
+    } catch (err) {
+      console.error('PDF generation failed!', err);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="w-full flex flex-col items-center relative">
       <div className="w-full max-w-2xl relative z-10">
@@ -58,13 +94,22 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
             <button onClick={onBack} className="text-blue-600 dark:text-blue-400 font-bold hover:text-blue-700 dark:hover:text-blue-300 transition-colors flex items-center gap-2">
                 <span className="text-xl">&larr;</span> Back to Dashboard
             </button>
-            <button 
-                onClick={handleDownload}
-                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 shadow-xl shadow-blue-500/20 active:scale-95"
-            >
-                <ArrowDownTrayIcon className="w-5 h-5" />
-                <span>Download Receipt</span>
-            </button>
+            <div className="flex gap-3">
+                <button 
+                    onClick={handleDownloadImage}
+                    className="flex items-center justify-center gap-2 bg-white dark:bg-blue-900/20 border border-gray-200 dark:border-blue-900/30 text-gray-700 dark:text-blue-400 font-bold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg active:scale-95"
+                >
+                    <ArrowDownTrayIcon className="w-5 h-5" />
+                    <span>PNG</span>
+                </button>
+                <button 
+                    onClick={handleDownloadPDF}
+                    className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 shadow-xl shadow-blue-500/20 active:scale-95"
+                >
+                    <DocumentTextIcon className="w-5 h-5" />
+                    <span>Download PDF</span>
+                </button>
+            </div>
         </div>
 
         <div ref={receiptRef} className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-blue-900/20 overflow-hidden relative">
