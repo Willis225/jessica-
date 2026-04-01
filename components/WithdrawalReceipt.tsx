@@ -68,16 +68,22 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
         }
       });
 
-      // Create PDF
+      // Create a temporary image to get dimensions
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      const pdfWidth = 672;
+      const pdfHeight = (img.height * pdfWidth) / img.width;
+
+      // Create PDF with dynamic height
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
-        format: [672, 900] // Match the receipt dimensions roughly
+        format: [pdfWidth, pdfHeight]
       });
-
-      const imgProps = pdf.getImageProperties(dataUrl);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`INVEST-EMPOWERMENT-Receipt-${receipt.transactionId}.pdf`);
@@ -196,7 +202,10 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
             </div>
           </div>
           
-          <div className="p-6 text-center bg-gray-50/50 dark:bg-blue-900/10 border-t border-gray-100 dark:border-blue-900/10 relative z-10">
+          <div className="p-8 text-center bg-gray-50/50 dark:bg-blue-900/10 border-t border-gray-100 dark:border-blue-900/10 relative z-10">
+             <p className="text-xs font-bold text-gray-500 dark:text-blue-400/60 mb-6 leading-relaxed max-w-md mx-auto italic">
+               Please note that your funds will be transferred to your designated bank. Your bank will review and approve the transaction before your profit is credited to your account.
+             </p>
              <p className="text-xs font-bold text-gray-400 dark:text-blue-400/40 uppercase tracking-widest">Invest Empowerment Official Receipt</p>
           </div>
         </div>
