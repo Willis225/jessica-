@@ -54,7 +54,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
             <div className="relative group">
               <div className="absolute -inset-1 bg-blue-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity" />
               {imagePreview ? (
-                <img src={imagePreview} alt="Profile Preview" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-blue-900/30 shadow-2xl relative z-10" />
+                <img 
+                  src={imagePreview} 
+                  alt="Profile Preview" 
+                  className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-blue-900/30 shadow-2xl relative z-10" 
+                  referrerPolicy="no-referrer"
+                />
               ) : (
                 <UserCircleIcon className="w-32 h-32 text-gray-200 dark:text-blue-900/30 relative z-10" />
               )}

@@ -31,6 +31,7 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
       const dataUrl = await htmlToImage.toPng(receiptRef.current, { 
         quality: 0.98,
         pixelRatio: 2, // Increase resolution for better quality
+        useCORS: true, // Enable CORS to capture external images
         style: {
           width: '672px', 
           margin: '0',
@@ -57,6 +58,7 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
       const dataUrl = await htmlToImage.toPng(receiptRef.current, { 
         quality: 1,
         pixelRatio: 3, // Higher resolution for PDF
+        useCORS: true, // Enable CORS to capture external images
         style: {
           width: '672px', 
           margin: '0',
@@ -131,7 +133,12 @@ const WithdrawalReceipt: React.FC<WithdrawalReceiptProps> = ({ receipt, onBack }
           <div className="p-10 space-y-10 relative z-10">
             <div className="flex items-center gap-5 bg-gray-50 dark:bg-black/20 p-4 rounded-3xl border border-gray-100 dark:border-blue-900/10">
               {userProfile.profilePicture ? (
-                <img src={userProfile.profilePicture} alt="Profile" className="w-14 h-14 rounded-2xl object-cover shadow-lg" />
+                <img 
+                  src={userProfile.profilePicture} 
+                  alt="Profile" 
+                  className="w-14 h-14 rounded-2xl object-cover shadow-lg" 
+                  referrerPolicy="no-referrer"
+                />
               ) : (
                 <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center">
                   <UserCircleIcon className="w-10 h-10 text-blue-600/40" />

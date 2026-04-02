@@ -46,6 +46,10 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWi
   const numericAmount = parseFloat(amount as string);
 
   useEffect(() => {
+    setBankName('');
+  }, [targetCurrency]);
+
+  useEffect(() => {
     if (numericAmount > 0) {
       setConvertedAmount(numericAmount * exchangeRates[targetCurrency]);
     } else {
@@ -204,7 +208,29 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ totalValue, onClose, onWi
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest ml-1">Bank Information</h3>
                      <div>
-                        <input id="bank-name" type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="Bank Name" required className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"/>
+                        {targetCurrency === 'PGK' ? (
+                          <select 
+                            id="bank-name" 
+                            value={bankName} 
+                            onChange={(e) => setBankName(e.target.value)} 
+                            required 
+                            className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium"
+                          >
+                            <option value="">Select Bank</option>
+                            <option value="Bank of South Pacific-BSP">Bank of South Pacific-BSP</option>
+                            <option value="Kina bank">Kina bank</option>
+                          </select>
+                        ) : (
+                          <input 
+                            id="bank-name" 
+                            type="text" 
+                            value={bankName} 
+                            onChange={(e) => setBankName(e.target.value)} 
+                            placeholder="Bank Name" 
+                            required 
+                            className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                          />
+                        )}
                     </div>
                     <div>
                         <input id="account-holder-name" type="text" value={accountHolderName} onChange={(e) => setAccountHolderName(e.target.value)} placeholder="Account Holder Name" required className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"/>
