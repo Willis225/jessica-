@@ -1,0 +1,34 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and investment data",
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "object",
+          "description": "User profile details"
+        },
+        "assets": {
+          "type": "array",
+          "description": "User assets and transactions"
+        },
+        "investmentStartTime": {
+          "type": "number",
+          "description": "Timestamp when investment started"
+        },
+        "withdrawalHistory": {
+          "type": "array",
+          "description": "History of withdrawals"
+        }
+      },
+      "required": ["profile", "assets", "investmentStartTime"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User data stored by UID"
+    }
+  }
+}

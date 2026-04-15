@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Asset, TransactionType, UserProfile, Notification, Receipt, PriceAlert } from './types';
+import { auth, db } from './firebase';
+import { 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut 
+} from 'firebase/auth';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  onSnapshot 
+} from 'firebase/firestore';
 import LoginScreen from './components/LoginScreen';
 import ManageBalanceModal from './components/ManageBalanceModal';
 import TransactionHistoryModal from './components/TransactionHistoryModal';
@@ -22,9 +36,6 @@ type ModalState = {
 };
 
 // --- User Data Management ---
-const USERS_DB_KEY = 'invest_empowerment_users';
-const ACTIVE_USER_KEY = 'invest_empowerment_active_user';
-
 const MOCK_INVESTORS = [
     { name: 'Mary T.', location: 'Port Moresby, Papua New Guinea' },
     { name: 'Ratu S.', location: 'Suva, Fiji' },
@@ -42,10 +53,12 @@ const MOCK_INVESTORS = [
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [loginError, setLoginError] = useState('');
   
   // State for the currently logged-in user
   const [activeUserEmail, setActiveUserEmail] = useState<string | null>(null);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [investmentStartTime, setInvestmentStartTime] = useState<number | null>(null);
@@ -98,50 +111,51 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    // Seed default users if none exist
-    const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    
-    // Seed Jessica Allen (Original Default)
-    const jessicaEmail = newInitialProfile.email.toLowerCase();
-    if (!users[jessicaEmail]) {
-      users[jessicaEmail] = {
-        password: 'password123',
-        profile: newInitialProfile,
-        assets: newInitialAssets,
-        investmentStartTime: Date.now(),
-      };
-    }
-
-    // Seed Paulias Kamban (User Requested)
-    const pauliasEmail = 'pauliaskamban24@gmail.com';
-    if (!users[pauliasEmail]) {
-      users[pauliasEmail] = {
-        password: 'Kamban',
-        profile: {
-          ...newInitialProfile,
-          fullName: 'PAULIAS KAMBAN',
-          email: pauliasEmail,
-        },
-        assets: newInitialAssets,
-        investmentStartTime: Date.now(),
-      };
-    }
-
-    localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
-
-    // Auto-login check on initial load
-    const loggedInUserEmail = localStorage.getItem(ACTIVE_USER_KEY);
-    if (loggedInUserEmail) {
-      const userData = users[loggedInUserEmail];
-      if (userData) {
-        setActiveUserEmail(loggedInUserEmail);
-        setAssets(userData.assets);
-        setUserProfile(userData.profile);
-        setInvestmentStartTime(userData.investmentStartTime);
-        setWithdrawalHistory(userData.withdrawalHistory || []);
-        setIsLoggedIn(true);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setActiveUserEmail(user.email);
+        setActiveUserId(user.uid);
+        
+        // Load user data from Firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setAssets(userData.assets || []);
+          setUserProfile(userData.profile || null);
+          setInvestmentStartTime(userData.investmentStartTime || null);
+          setWithdrawalHistory(userData.withdrawalHistory || []);
+          setIsLoggedIn(true);
+        } else {
+          // If doc doesn't exist but user is logged in (shouldn't happen with normal signup)
+          // Initialize with defaults
+          const startTime = Date.now();
+          const initialData = {
+            profile: { ...newInitialProfile, email: user.email || '' },
+            assets: newInitialAssets,
+            investmentStartTime: startTime,
+            withdrawalHistory: []
+          };
+          await setDoc(userDocRef, initialData);
+          setAssets(newInitialAssets);
+          setUserProfile(initialData.profile);
+          setInvestmentStartTime(startTime);
+          setWithdrawalHistory([]);
+          setIsLoggedIn(true);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setActiveUserEmail(null);
+        setActiveUserId(null);
+        setAssets([]);
+        setUserProfile(null);
+        setWithdrawalHistory([]);
       }
-    }
+      setIsAuthReady(true);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -156,10 +170,9 @@ const App: React.FC = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
 
-  const saveUserData = (email: string, data: any) => {
-    const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    users[email] = data;
-    localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+  const saveUserData = async (uid: string, data: any) => {
+    const userDocRef = doc(db, 'users', uid);
+    await setDoc(userDocRef, data, { merge: true });
   };
 
   const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
@@ -196,64 +209,69 @@ const App: React.FC = () => {
     return () => clearInterval(activityInterval);
   }, [isLoggedIn, notifications]);
 
-  const handleLogin = (email: string, password: string): boolean => {
+  const handleLogin = async (email: string, password: string): Promise<boolean> => {
     setLoginError('');
-    const trimmedEmail = email.trim().toLowerCase();
-    const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    const userData = users[trimmedEmail];
-
-    if (userData && userData.password === password) {
-      setActiveUserEmail(trimmedEmail);
-      setAssets(userData.assets);
-      setUserProfile(userData.profile);
-      setInvestmentStartTime(userData.investmentStartTime);
-      setIsLoggedIn(true);
-      localStorage.setItem(ACTIVE_USER_KEY, trimmedEmail);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Welcome back', message: 'You are now signed in to your dashboard.' });
       return true;
-    }
-    setLoginError('Invalid email or password.');
-    return false;
-  };
-
-  const handleSignup = (name: string, email: string, password: string): boolean => {
-    setLoginError('');
-    const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-    const trimmedEmail = email.trim().toLowerCase();
-
-    if (users[trimmedEmail]) {
-      setLoginError('An account with this email already exists.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      let message = 'Invalid email or password.';
+      if (error.code === 'auth/invalid-credential') {
+        message = 'Invalid email or password. If you haven\'t created an account yet, please Sign Up first.';
+      } else if (error.code === 'auth/user-not-found') {
+        message = 'No account found with this email. Please Sign Up.';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Incorrect password. Please try again.';
+      } else if (error.code === 'auth/too-many-requests') {
+        message = 'Too many failed attempts. Please try again later.';
+      }
+      setLoginError(message);
       return false;
     }
-
-    const startTime = Date.now();
-    const newUserProfile = { ...newInitialProfile, email: trimmedEmail, fullName: name.trim() || 'New Investor' };
-    const newUserData = {
-      password,
-      profile: newUserProfile,
-      assets: newInitialAssets,
-      investmentStartTime: startTime,
-    };
-
-    saveUserData(trimmedEmail, newUserData);
-
-    setActiveUserEmail(trimmedEmail);
-    setAssets(newInitialAssets);
-    setUserProfile(newUserProfile);
-    setInvestmentStartTime(startTime);
-    setIsLoggedIn(true);
-    localStorage.setItem(ACTIVE_USER_KEY, trimmedEmail);
-    addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Account Created!', message: 'Welcome to INVEST EMPOWERMENT!' });
-    return true;
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setActiveUserEmail(null);
-    setAssets([]);
-    setUserProfile(null);
-    setWithdrawalHistory([]);
-    localStorage.removeItem(ACTIVE_USER_KEY);
+  const handleSignup = async (name: string, email: string, password: string): Promise<boolean> => {
+    setLoginError('');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const user = userCredential.user;
+      
+      const startTime = Date.now();
+      const newUserProfile = { ...newInitialProfile, email: email.trim().toLowerCase(), fullName: name.trim() || 'New Investor' };
+      const initialData = {
+        profile: newUserProfile,
+        assets: newInitialAssets,
+        investmentStartTime: startTime,
+        withdrawalHistory: []
+      };
+
+      await setDoc(doc(db, 'users', user.uid), initialData);
+      
+      addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Account Created!', message: 'Welcome to INVEST EMPOWERMENT!' });
+      return true;
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      let message = 'Error creating account.';
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already in use. Please Log In instead.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password is too weak. Please use at least 6 characters.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address.';
+      }
+      setLoginError(message);
+      return false;
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
   
   const handleUpdateBalance = (assetId: string, amount: number, type: TransactionType, description?: string) => {
@@ -267,10 +285,8 @@ const App: React.FC = () => {
       return asset;
     });
     setAssets(updatedAssets);
-    if (activeUserEmail) {
-      const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-      const currentUserData = users[activeUserEmail];
-      saveUserData(activeUserEmail, { ...currentUserData, assets: updatedAssets });
+    if (activeUserId) {
+      saveUserData(activeUserId, { assets: updatedAssets });
     }
   };
   
@@ -306,10 +322,8 @@ const App: React.FC = () => {
     const newHistory = [newReceipt, ...withdrawalHistory];
     setWithdrawalHistory(newHistory);
     
-    if (activeUserEmail) {
-      const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-      const currentUserData = users[activeUserEmail];
-      saveUserData(activeUserEmail, { ...currentUserData, assets: updatedAssets, withdrawalHistory: newHistory });
+    if (activeUserId) {
+      saveUserData(activeUserId, { assets: updatedAssets, withdrawalHistory: newHistory });
     }
 
     addNotification({ type: 'withdrawal', icon: BanknotesIcon, title: 'Withdrawal Successful', message: `Your withdrawal of ${details.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} has been processed.` });
@@ -329,10 +343,8 @@ const App: React.FC = () => {
       return asset;
     });
     setAssets(updatedAssets);
-     if (activeUserEmail) {
-      const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-      const currentUserData = users[activeUserEmail];
-      saveUserData(activeUserEmail, { ...currentUserData, assets: updatedAssets });
+    if (activeUserId) {
+      saveUserData(activeUserId, { assets: updatedAssets });
     }
   };
 
@@ -344,19 +356,15 @@ const App: React.FC = () => {
       return asset;
     });
     setAssets(updatedAssets);
-    if (activeUserEmail) {
-      const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-      const currentUserData = users[activeUserEmail];
-      saveUserData(activeUserEmail, { ...currentUserData, assets: updatedAssets });
+    if (activeUserId) {
+      saveUserData(activeUserId, { assets: updatedAssets });
     }
   };
 
   const handleSaveProfile = (updatedProfile: UserProfile) => {
     setUserProfile(updatedProfile);
-    if (activeUserEmail) {
-      const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-      const currentUserData = users[activeUserEmail];
-      saveUserData(activeUserEmail, { ...currentUserData, profile: updatedProfile });
+    if (activeUserId) {
+      saveUserData(activeUserId, { profile: updatedProfile });
     }
     addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Profile Updated', message: 'Your profile information has been saved successfully.' });
   };
@@ -403,6 +411,19 @@ const App: React.FC = () => {
 
     return () => observer.disconnect();
   }, [isLoggedIn, currentView]);
+
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#050505] flex items-center justify-center">
+        <div className="atmosphere" />
+        <div className="spotlight-bg" />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-gray-500 dark:text-blue-400 font-bold animate-pulse">Initializing Secure Session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoggedIn || !userProfile) {
     return <LoginScreen onLogin={handleLogin} onSignup={handleSignup} error={loginError} />;

@@ -2,8 +2,8 @@ import React, { useState, FormEvent } from 'react';
 import { StockIcon, EyeIcon, EyeSlashIcon } from './Icons';
 
 interface LoginScreenProps {
-  onLogin: (email: string, password: string) => boolean;
-  onSignup: (name: string, email: string, password: string) => boolean;
+  onLogin: (email: string, password: string) => Promise<boolean>;
+  onSignup: (name: string, email: string, password: string) => Promise<boolean>;
   error: string;
 }
 
@@ -15,19 +15,28 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
   const [securityCode, setSecurityCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLocalError('');
+    setIsLoading(true);
     
-    if (isLogin) {
-      onLogin(email, password);
-    } else {
-      if (securityCode !== 'code123') {
-        setLocalError('Invalid security code. Registration denied.');
-        return;
+    try {
+      if (isLogin) {
+        await onLogin(email, password);
+      } else {
+        if (securityCode !== 'code123') {
+          setLocalError('Invalid security code. Registration denied.');
+          setIsLoading(false);
+          return;
+        }
+        await onSignup(name, email, password);
       }
-      onSignup(name, email, password);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -134,9 +143,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
             
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 text-lg shadow-xl shadow-blue-500/20 hover:-translate-y-1 active:scale-95"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 text-lg shadow-xl shadow-blue-500/20 hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isLogin ? 'Log In' : 'Sign Up'}
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                isLogin ? 'Log In' : 'Sign Up'
+              )}
             </button>
           </form>
           
