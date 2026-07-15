@@ -133,9 +133,11 @@ const App: React.FC = () => {
             setAssets(userData.assets || []);
             setUserProfile(userData.profile || null);
             setInvestmentStartTime(userData.investmentStartTime || null);
-            setWithdrawalHistory(userData.withdrawalHistory || []);
+            const history = userData.withdrawalHistory || [];
+            setWithdrawalHistory(history);
             setTotalWithdrawn(userData.totalWithdrawn || 0);
-            setHasWithdrawnAfterCompletion(userData.hasWithdrawnAfterCompletion || false);
+            const dbHasWithdrawn = userData.hasWithdrawnAfterCompletion || (history.length > 0);
+            setHasWithdrawnAfterCompletion(dbHasWithdrawn);
             setIsLoggedIn(true);
           } else {
             // If doc doesn't exist but user is logged in (shouldn't happen with normal signup)
