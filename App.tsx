@@ -77,8 +77,15 @@ const App: React.FC = () => {
   const [animatedBalance, setAnimatedBalance] = useState(0);
   const [isInvestmentCompleted, setIsInvestmentCompleted] = useState(false);
   const [totalWithdrawn, setTotalWithdrawn] = useState(0);
+  const [hasWithdrawnAfterCompletion, setHasWithdrawnAfterCompletion] = useState(false);
 
   useEffect(() => {
+    if (hasWithdrawnAfterCompletion) {
+      setAnimatedBalance(0);
+      setIsInvestmentCompleted(true);
+      return;
+    }
+
     if (investmentStartTime === null) return;
 
     let animationFrameId: number;
@@ -101,7 +108,7 @@ const App: React.FC = () => {
     return () => {
         cancelAnimationFrame(animationFrameId);
     };
-  }, [investmentStartTime, totalWithdrawn]);
+  }, [investmentStartTime, totalWithdrawn, hasWithdrawnAfterCompletion]);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -127,6 +134,8 @@ const App: React.FC = () => {
             setUserProfile(userData.profile || null);
             setInvestmentStartTime(userData.investmentStartTime || null);
             setWithdrawalHistory(userData.withdrawalHistory || []);
+            setTotalWithdrawn(userData.totalWithdrawn || 0);
+            setHasWithdrawnAfterCompletion(userData.hasWithdrawnAfterCompletion || false);
             setIsLoggedIn(true);
           } else {
             // If doc doesn't exist but user is logged in (shouldn't happen with normal signup)
@@ -136,13 +145,17 @@ const App: React.FC = () => {
               profile: { ...newInitialProfile, email: user.email || '' },
               assets: newInitialAssets,
               investmentStartTime: startTime,
-              withdrawalHistory: []
+              withdrawalHistory: [],
+              totalWithdrawn: 0,
+              hasWithdrawnAfterCompletion: false
             };
             await setDoc(userDocRef, initialData);
             setAssets(newInitialAssets);
             setUserProfile(initialData.profile);
             setInvestmentStartTime(startTime);
             setWithdrawalHistory([]);
+            setTotalWithdrawn(0);
+            setHasWithdrawnAfterCompletion(false);
             setIsLoggedIn(true);
           }
         } else {
@@ -256,7 +269,9 @@ const App: React.FC = () => {
         profile: newUserProfile,
         assets: newInitialAssets,
         investmentStartTime: startTime,
-        withdrawalHistory: []
+        withdrawalHistory: [],
+        totalWithdrawn: 0,
+        hasWithdrawnAfterCompletion: false
       };
 
       await setDoc(doc(db, 'users', user.uid), initialData);
@@ -358,12 +373,25 @@ const App: React.FC = () => {
     const newHistory = [newReceipt, ...withdrawalHistory];
     setWithdrawalHistory(newHistory);
     
+    const isCompletedNow = isInvestmentCompleted || (investmentStartTime !== null && (Date.now() - investmentStartTime >= DURATION_MS));
+    const nextTotalWithdrawn = totalWithdrawn + details.amount;
+    const nextHasWithdrawnAfterCompletion = hasWithdrawnAfterCompletion || isCompletedNow;
+
+    setTotalWithdrawn(nextTotalWithdrawn);
+    if (nextHasWithdrawnAfterCompletion) {
+      setHasWithdrawnAfterCompletion(true);
+    }
+    
     if (activeUserId) {
-      saveUserData(activeUserId, { assets: updatedAssets, withdrawalHistory: newHistory });
+      saveUserData(activeUserId, { 
+        assets: updatedAssets, 
+        withdrawalHistory: newHistory,
+        totalWithdrawn: nextTotalWithdrawn,
+        hasWithdrawnAfterCompletion: nextHasWithdrawnAfterCompletion
+      });
     }
 
     addNotification({ type: 'withdrawal', icon: BanknotesIcon, title: 'Withdrawal Successful', message: `Your withdrawal of ${details.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} has been processed.` });
-    setTotalWithdrawn(prev => prev + details.amount);
     setActiveReceipt(newReceipt);
     setCurrentView('receipt');
     setIsWithdrawModalOpen(false);
