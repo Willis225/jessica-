@@ -6,7 +6,7 @@ import {
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signOut 
+  signOut
 } from 'firebase/auth';
 import { 
   doc, 
@@ -112,47 +112,59 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setActiveUserEmail(user.email);
-        setActiveUserId(user.uid);
-        
-        // Load user data from Firestore
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setAssets(userData.assets || []);
-          setUserProfile(userData.profile || null);
-          setInvestmentStartTime(userData.investmentStartTime || null);
-          setWithdrawalHistory(userData.withdrawalHistory || []);
-          setIsLoggedIn(true);
+      try {
+        if (user) {
+          setActiveUserEmail(user.email);
+          setActiveUserId(user.uid);
+          
+          // Load user data from Firestore
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setAssets(userData.assets || []);
+            setUserProfile(userData.profile || null);
+            setInvestmentStartTime(userData.investmentStartTime || null);
+            setWithdrawalHistory(userData.withdrawalHistory || []);
+            setIsLoggedIn(true);
+          } else {
+            // If doc doesn't exist but user is logged in (shouldn't happen with normal signup)
+            // Initialize with defaults
+            const startTime = Date.now();
+            const initialData = {
+              profile: { ...newInitialProfile, email: user.email || '' },
+              assets: newInitialAssets,
+              investmentStartTime: startTime,
+              withdrawalHistory: []
+            };
+            await setDoc(userDocRef, initialData);
+            setAssets(newInitialAssets);
+            setUserProfile(initialData.profile);
+            setInvestmentStartTime(startTime);
+            setWithdrawalHistory([]);
+            setIsLoggedIn(true);
+          }
         } else {
-          // If doc doesn't exist but user is logged in (shouldn't happen with normal signup)
-          // Initialize with defaults
-          const startTime = Date.now();
-          const initialData = {
-            profile: { ...newInitialProfile, email: user.email || '' },
-            assets: newInitialAssets,
-            investmentStartTime: startTime,
-            withdrawalHistory: []
-          };
-          await setDoc(userDocRef, initialData);
-          setAssets(newInitialAssets);
-          setUserProfile(initialData.profile);
-          setInvestmentStartTime(startTime);
+          setIsLoggedIn(false);
+          setActiveUserEmail(null);
+          setActiveUserId(null);
+          setAssets([]);
+          setUserProfile(null);
           setWithdrawalHistory([]);
-          setIsLoggedIn(true);
         }
-      } else {
+      } catch (err: any) {
+        console.error('Error in onAuthStateChanged listener:', err);
+        setLoginError(`Database Connection Error: ${err.message || err}. Please try again.`);
         setIsLoggedIn(false);
         setActiveUserEmail(null);
         setActiveUserId(null);
         setAssets([]);
         setUserProfile(null);
         setWithdrawalHistory([]);
+      } finally {
+        setIsAuthReady(true);
       }
-      setIsAuthReady(true);
     });
 
     return () => unsubscribe();
@@ -249,17 +261,41 @@ const App: React.FC = () => {
 
       await setDoc(doc(db, 'users', user.uid), initialData);
       
+      // Send welcome email to new registrant (non-blocking)
+      try {
+        fetch('/api/send-welcome-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            fullName: name.trim() || 'New Investor',
+          }),
+        }).then(res => {
+          if (!res.ok) {
+            console.warn('[Email Service] Server responded with an error sending email');
+          }
+        }).catch(err => {
+          console.error('[Email Service] Failed to send request:', err);
+        });
+      } catch (emailErr) {
+        console.error('[Email Service] Error triggering welcome email:', emailErr);
+      }
+      
       addNotification({ type: 'new_member', icon: UserPlusIcon, title: 'Account Created!', message: 'Welcome to INVEST EMPOWERMENT!' });
       return true;
     } catch (error: any) {
       console.error('Signup error:', error);
       let message = 'Error creating account.';
       if (error.code === 'auth/email-already-in-use') {
-        message = 'This email is already in use. Please Log In instead.';
+        message = 'This email is already in use. Please Log In, or delete the old user from your Firebase Console to register fresh.';
       } else if (error.code === 'auth/weak-password') {
         message = 'Password is too weak. Please use at least 6 characters.';
       } else if (error.code === 'auth/invalid-email') {
         message = 'Please enter a valid email address.';
+      } else {
+        message = `Error creating account: ${error.message || error}`;
       }
       setLoginError(message);
       return false;
