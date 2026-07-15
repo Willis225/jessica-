@@ -374,8 +374,9 @@ const App: React.FC = () => {
     setWithdrawalHistory(newHistory);
     
     const isCompletedNow = isInvestmentCompleted || (investmentStartTime !== null && (Date.now() - investmentStartTime >= DURATION_MS));
+    const isWithdrawingAll = details.amount >= (animatedBalance - 0.5);
     const nextTotalWithdrawn = totalWithdrawn + details.amount;
-    const nextHasWithdrawnAfterCompletion = hasWithdrawnAfterCompletion || isCompletedNow;
+    const nextHasWithdrawnAfterCompletion = hasWithdrawnAfterCompletion || isCompletedNow || isWithdrawingAll;
 
     setTotalWithdrawn(nextTotalWithdrawn);
     if (nextHasWithdrawnAfterCompletion) {
