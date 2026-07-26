@@ -19,12 +19,12 @@ interface MobileDashboardProps {
     theme: 'light' | 'dark';
     onToggleTheme: () => void;
     investmentStartTime: number | null;
+    investmentDurationHours?: number;
     animatedBalance: number;
     isCompleted: boolean;
 }
 
 const TARGET_BALANCE = 20000;
-const DURATION_MS = 48 * 60 * 60 * 1000; // 48 hours
 const INITIAL_INVESTMENT = 500; // Assumed initial investment for profit calculation
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -38,9 +38,11 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     theme,
     onToggleTheme,
     investmentStartTime,
+    investmentDurationHours = 48,
     animatedBalance,
     isCompleted,
 }) => {
+    const durationMs = (investmentDurationHours || 48) * 60 * 60 * 1000;
     
     const profit = animatedBalance > INITIAL_INVESTMENT ? animatedBalance - INITIAL_INVESTMENT : 0;
     const profitPercentage = INITIAL_INVESTMENT > 0 ? (profit / INITIAL_INVESTMENT) * 100 : 0;
@@ -136,7 +138,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
             <section className="text-center space-y-4 py-4 relative z-10">
                 <div className="space-y-1">
                     <p className={`text-xs font-bold uppercase tracking-[0.2em] reveal-text transition-colors duration-500 ${isCompleted ? 'text-green-500 dark:text-green-400' : 'text-gray-500 dark:text-blue-400/60'}`}>
-                        {isCompleted ? "INVEST HOURS COMPLETED" : "Total Portfolio Value"}
+                        {isCompleted ? `${investmentDurationHours} HOURS COMPLETED` : "Total Portfolio Value"}
                     </p>
                     <motion.p 
                         initial={{ scale: 0.9, opacity: 0 }}
@@ -157,7 +159,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                     </div>
                     {!isCompleted && investmentStartTime && (
                         <p className="text-[10px] font-bold text-gray-400 dark:text-blue-400/40 uppercase tracking-widest">
-                            Progress: {((Math.min(DURATION_MS, Date.now() - investmentStartTime) / DURATION_MS) * 100).toFixed(1)}%
+                            Progress: {((Math.min(durationMs, Date.now() - investmentStartTime) / durationMs) * 100).toFixed(1)}%
                         </p>
                     )}
                 </div>

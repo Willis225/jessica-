@@ -73,7 +73,7 @@ const App: React.FC = () => {
   const [activeReceipt, setActiveReceipt] = useState<Receipt | null>(null);
 
   const TARGET_BALANCE = 20000;
-  const DURATION_MS = 48 * 60 * 60 * 1000; // 48 hours
+  const [investmentDurationHours, setInvestmentDurationHours] = useState<number>(48);
   const [animatedBalance, setAnimatedBalance] = useState(0);
   const [isInvestmentCompleted, setIsInvestmentCompleted] = useState(false);
   const [totalWithdrawn, setTotalWithdrawn] = useState(0);
@@ -89,10 +89,11 @@ const App: React.FC = () => {
     if (investmentStartTime === null) return;
 
     let animationFrameId: number;
+    const durationMs = (investmentDurationHours || 48) * 60 * 60 * 1000;
     
     const animate = () => {
         const elapsedTime = Date.now() - investmentStartTime;
-        const progress = Math.min(elapsedTime / DURATION_MS, 1);
+        const progress = Math.min(elapsedTime / durationMs, 1);
         const currentBalance = (progress * TARGET_BALANCE) - totalWithdrawn;
         setAnimatedBalance(Math.max(0, currentBalance));
 
@@ -108,7 +109,7 @@ const App: React.FC = () => {
     return () => {
         cancelAnimationFrame(animationFrameId);
     };
-  }, [investmentStartTime, totalWithdrawn, hasWithdrawnAfterCompletion]);
+  }, [investmentStartTime, totalWithdrawn, hasWithdrawnAfterCompletion, investmentDurationHours]);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -133,6 +134,7 @@ const App: React.FC = () => {
             setAssets(userData.assets || []);
             setUserProfile(userData.profile || null);
             setInvestmentStartTime(userData.investmentStartTime || null);
+            setInvestmentDurationHours(userData.investmentDurationHours || 48);
             const history = userData.withdrawalHistory || [];
             setWithdrawalHistory(history);
             setTotalWithdrawn(userData.totalWithdrawn || 0);
@@ -147,6 +149,7 @@ const App: React.FC = () => {
               profile: { ...newInitialProfile, email: user.email || '' },
               assets: newInitialAssets,
               investmentStartTime: startTime,
+              investmentDurationHours: 48,
               withdrawalHistory: [],
               totalWithdrawn: 0,
               hasWithdrawnAfterCompletion: false
@@ -155,6 +158,7 @@ const App: React.FC = () => {
             setAssets(newInitialAssets);
             setUserProfile(initialData.profile);
             setInvestmentStartTime(startTime);
+            setInvestmentDurationHours(48);
             setWithdrawalHistory([]);
             setTotalWithdrawn(0);
             setHasWithdrawnAfterCompletion(false);
@@ -259,24 +263,27 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSignup = async (name: string, email: string, password: string): Promise<boolean> => {
+  const handleSignup = async (name: string, email: string, password: string, durationHours: number = 48): Promise<boolean> => {
     setLoginError('');
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCredential.user;
       
       const startTime = Date.now();
+      const validHours = durationHours > 0 ? durationHours : 48;
       const newUserProfile = { ...newInitialProfile, email: email.trim().toLowerCase(), fullName: name.trim() || 'New Investor' };
       const initialData = {
         profile: newUserProfile,
         assets: newInitialAssets,
         investmentStartTime: startTime,
+        investmentDurationHours: validHours,
         withdrawalHistory: [],
         totalWithdrawn: 0,
         hasWithdrawnAfterCompletion: false
       };
 
       await setDoc(doc(db, 'users', user.uid), initialData);
+      setInvestmentDurationHours(validHours);
       
       // Send welcome email to new registrant (non-blocking)
       try {
@@ -375,7 +382,8 @@ const App: React.FC = () => {
     const newHistory = [newReceipt, ...withdrawalHistory];
     setWithdrawalHistory(newHistory);
     
-    const isCompletedNow = isInvestmentCompleted || (investmentStartTime !== null && (Date.now() - investmentStartTime >= DURATION_MS));
+    const durationMs = (investmentDurationHours || 48) * 60 * 60 * 1000;
+    const isCompletedNow = isInvestmentCompleted || (investmentStartTime !== null && (Date.now() - investmentStartTime >= durationMs));
     const isWithdrawingAll = details.amount >= (animatedBalance - 0.5);
     const nextTotalWithdrawn = totalWithdrawn + details.amount;
     const nextHasWithdrawnAfterCompletion = hasWithdrawnAfterCompletion || isCompletedNow || isWithdrawingAll;
@@ -528,6 +536,7 @@ const App: React.FC = () => {
               theme={theme}
               onToggleTheme={toggleTheme}
               investmentStartTime={investmentStartTime}
+              investmentDurationHours={investmentDurationHours}
               animatedBalance={animatedBalance}
               isCompleted={isInvestmentCompleted}
           />

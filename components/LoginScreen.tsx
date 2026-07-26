@@ -3,7 +3,7 @@ import { StockIcon, EyeIcon, EyeSlashIcon } from './Icons';
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
-  onSignup: (name: string, email: string, password: string) => Promise<boolean>;
+  onSignup: (name: string, email: string, password: string, durationHours: number) => Promise<boolean>;
   error: string;
 }
 
@@ -13,6 +13,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [securityCode, setSecurityCode] = useState('');
+  const [investmentHours, setInvestmentHours] = useState('48');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +32,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
           setIsLoading(false);
           return;
         }
-        await onSignup(name, email, password);
+        const hoursNum = parseFloat(investmentHours);
+        if (isNaN(hoursNum) || hoursNum <= 0) {
+          setLocalError('Please enter a valid investment timeframe in hours (e.g. 48).');
+          setIsLoading(false);
+          return;
+        }
+        await onSignup(name, email, password, hoursNum);
       }
     } catch (err) {
       console.error(err);
@@ -87,6 +94,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSignup, error }) =
                     value={securityCode}
                     onChange={(e) => setSecurityCode(e.target.value)}
                     placeholder="Enter registration code"
+                    required={!isLogin}
+                    className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="investmentHours" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+                    Investment Timeframe (in hours)
+                  </label>
+                  <input
+                    id="investmentHours"
+                    type="number"
+                    min="0.1"
+                    step="any"
+                    value={investmentHours}
+                    onChange={(e) => setInvestmentHours(e.target.value)}
+                    placeholder="e.g., 48"
                     required={!isLogin}
                     className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-blue-900/30 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
                   />
