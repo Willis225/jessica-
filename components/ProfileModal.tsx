@@ -1,6 +1,7 @@
 import React, { useState, FormEvent, useRef } from 'react';
 import { UserProfile } from '../types';
 import { XMarkIcon, CameraIcon, UserCircleIcon, TrashIcon } from './Icons';
+import { ImageEditorModal } from './ImageEditorModal';
 
 interface ProfileModalProps {
   profile: UserProfile;
@@ -90,6 +91,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
   const [imagePreview, setImagePreview] = useState<string | null>(profile.profilePicture || null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // Image Editor modal state
+  const [showEditor, setShowEditor] = useState<boolean>(false);
+  const [editorImageSrc, setEditorImageSrc] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -102,13 +108,29 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
     try {
       setIsProcessing(true);
       const compressedBase64 = await compressAndResizeImage(file);
-      setImagePreview(compressedBase64);
-      setFormData(prev => ({ ...prev, profilePicture: compressedBase64 }));
+      // Automatically open editor modal with uploaded file
+      setEditorImageSrc(compressedBase64);
+      setShowEditor(true);
     } catch (err) {
       console.error('Error compressing image:', err);
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleOpenCustomizer = () => {
+    if (imagePreview) {
+      setEditorImageSrc(imagePreview);
+      setShowEditor(true);
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleSaveCustomizedImage = (customizedDataUrl: string) => {
+    setImagePreview(customizedDataUrl);
+    setFormData(prev => ({ ...prev, profilePicture: customizedDataUrl }));
+    setShowEditor(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,7 +211,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -198,14 +220,23 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
                 Upload Photo
               </button>
               {imagePreview && (
-                <button
-                  type="button"
-                  onClick={handleRemovePhoto}
-                  className="text-xs font-bold text-red-500 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/30"
-                >
-                  <TrashIcon className="w-3.5 h-3.5" />
-                  Remove
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={handleOpenCustomizer}
+                    className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30"
+                  >
+                    Customize Photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="text-xs font-bold text-red-500 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/30"
+                  >
+                    <TrashIcon className="w-3.5 h-3.5" />
+                    Remove
+                  </button>
+                </>
               )}
             </div>
 
@@ -277,6 +308,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
           </div>
         </form>
       </div>
+
+      {showEditor && editorImageSrc && (
+        <ImageEditorModal
+          imageSrc={editorImageSrc}
+          onSave={handleSaveCustomizedImage}
+          onClose={() => setShowEditor(false)}
+        />
+      )}
     </div>
   );
 };
